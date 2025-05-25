@@ -21,13 +21,8 @@ interface ProductPageProps {
   };
 }
 
-// generateStaticParams can remain as this component is still pre-rendered at build time
-// The "use client" directive makes it a client component, but Next.js can still pre-render it.
-export async function generateStaticParams() {
-  return PRODUCTS.map((product) => ({
-    productId: product.id,
-  }));
-}
+// generateStaticParams has been removed as this page is a Client Component.
+// Next.js will handle dynamic routes for products; they will be server-rendered on demand or client-rendered.
 
 export default function ProductPage({ params }: ProductPageProps) {
   const product = PRODUCTS.find((p) => p.id === params.productId);
