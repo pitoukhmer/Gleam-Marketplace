@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Sparkles, Loader2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { generateProductImage, type GenerateProductImageInput } from '@/ai/flows/generate-product-image-flow';
+import { generateProductImage, type GenerateProductImageInput, type GenerateProductImageOutput } from '@/ai/flows/generate-product-image-flow';
 import type { Product } from '@/types';
 import { CATEGORIES } from '@/lib/constants'; // For category name
 import { useToast } from '@/hooks/use-toast';
@@ -92,15 +92,35 @@ const ProductImageGallery = ({ images: initialImages, productName, productCatego
 
     try {
       const input: GenerateProductImageInput = { productName, categoryName };
-      const result = await generateProductImage(input);
-      setAiImageOverride({ index: currentIndex, url: result.imageDataUri });
-      toast({
-        title: "AI Image Generated!",
-        description: "The AI has created a new version of the image.",
-      });
-    } catch (error) {
-      console.error("AI Image Generation Error:", error);
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during image generation.";
+      const result: GenerateProductImageOutput = await generateProductImage(input);
+      
+      if (result.error) {
+        setGenerationError(result.error);
+        toast({
+          title: "AI Generation Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else if (result.imageDataUri) {
+        setAiImageOverride({ index: currentIndex, url: result.imageDataUri });
+        toast({
+          title: "AI Image Generated!",
+          description: "The AI has created a new version of the image.",
+        });
+      } else {
+        // This case should ideally not be reached if the flow always returns either imageDataUri or error
+        const unexpectedError = "Unexpected response from AI image generator.";
+        setGenerationError(unexpectedError);
+        toast({
+          title: "Error",
+          description: unexpectedError,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) { // Catching errors from the server action call itself (e.g. network issues)
+      console.error("AI Image Generation Call Error:", error);
+      // This error is often the generic "An error occurred in the Server Components render" in prod.
+      const errorMessage = error?.message || "Failed to communicate with the AI image generator. Please check server logs and ensure API keys are set in production.";
       setGenerationError(errorMessage);
       toast({
         title: "Generation Failed",
@@ -161,9 +181,9 @@ const ProductImageGallery = ({ images: initialImages, productName, productCatego
               onClick={() => {
                 setCurrentIndex(index);
                 // If we click a thumbnail different from the one that has an AI override, clear the override
-                if (aiImageOverride && aiImageOverride.index !== index) {
-                  // setAiImageOverride(null); // Or keep specific overrides per index
-                }
+                // if (aiImageOverride && aiImageOverride.index !== index) {
+                //   setAiImageOverride(null); 
+                // }
               }}
               className={`rounded-md overflow-hidden border-2 transition-all ${
                 currentIndex === index ? 'border-primary ring-2 ring-primary' : 'border-transparent hover:border-primary/50'
@@ -206,4 +226,3 @@ const ProductImageGallery = ({ images: initialImages, productName, productCatego
 };
 
 export default ProductImageGallery;
-
