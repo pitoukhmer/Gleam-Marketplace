@@ -6,9 +6,10 @@ import { Search, Heart, ShoppingCart, User, LogOut, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CATEGORIES } from '@/lib/constants';
 import Logo from './Logo';
-import MobileNav from './MobileNav'; // MobileNav will also need auth state
+import MobileNav from './MobileNav';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -30,9 +31,19 @@ import { cn } from '@/lib/utils';
 const Header = () => {
   const { wishlistItems } = useWishlist();
   const { currentUser, logout, loading } = useAuth();
+  const { getCartItemCount } = useCart();
+  const cartItemCount = getCartItemCount();
 
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
+    const name = currentUser?.displayName;
+    if (name) {
+      const parts = name.split(' ');
+      if (parts.length > 1) {
+        return parts[0][0] + parts[parts.length - 1][0];
+      }
+      return name.substring(0,2);
+    }
     return email.substring(0, 2).toUpperCase();
   };
 
@@ -70,9 +81,13 @@ const Header = () => {
             </Button>
           </Link>
           <Link href="/checkout" passHref>
-            <Button variant="ghost" size="icon" className="text-foreground hover:text-primary transition-colors" aria-label="Shopping Cart">
+            <Button variant="ghost" size="icon" className="relative text-foreground hover:text-primary transition-colors" aria-label="Shopping Cart">
               <ShoppingCart className="h-5 w-5" />
-              {/* Placeholder for cart item count */}
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {cartItemCount}
+                </span>
+              )}
             </Button>
           </Link>
 
@@ -81,7 +96,6 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    {/* Placeholder for user avatar image */}
                     <AvatarImage src={currentUser.photoURL || undefined} alt={currentUser.displayName || currentUser.email || "User"} data-ai-hint="user avatar"/>
                     <AvatarFallback>{getInitials(currentUser.email)}</AvatarFallback>
                   </Avatar>
@@ -103,7 +117,6 @@ const Header = () => {
                     Account
                   </Link>
                 </DropdownMenuItem>
-                {/* Add other items like Settings, etc. if needed */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -114,13 +127,13 @@ const Header = () => {
           ) : !loading ? (
              <Link href="/login" passHref>
                 <Button variant="ghost" className="text-foreground hover:text-primary transition-colors">
-                    <LogIn className="mr-2 h-5 w-5 md:hidden" /> {/* Icon for mobile */}
-                    <span className="hidden md:inline">Login</span> {/* Text for desktop */}
+                    <LogIn className="mr-2 h-5 w-5 md:hidden" />
+                    <span className="hidden md:inline">Login</span>
                 </Button>
             </Link>
-          ) : null /* Show nothing while loading auth state */}
+          ) : null}
           
-          <MobileNav /> {/* Pass auth state to MobileNav if it needs it */}
+          <MobileNav />
         </div>
       </div>
     </header>

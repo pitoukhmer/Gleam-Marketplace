@@ -4,20 +4,31 @@
 import Link from 'next/link';
 import { Menu, Search, Heart, ShoppingCart, X, User, LogOut, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetClose, SheetTrigger } from '@/components/ui/sheet'; // Added SheetTrigger
+import { Sheet, SheetContent, SheetHeader, SheetClose, SheetTrigger } from '@/components/ui/sheet';
 import { CATEGORIES } from '@/lib/constants';
 import Logo from './Logo';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from '../ui/separator';
 
 const MobileNav = () => {
   const { wishlistItems } = useWishlist();
   const { currentUser, logout, loading } = useAuth();
+  const { getCartItemCount } = useCart();
+  const cartItemCount = getCartItemCount();
 
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
+     const name = currentUser?.displayName;
+    if (name) {
+      const parts = name.split(' ');
+      if (parts.length > 1) {
+        return parts[0][0] + parts[parts.length - 1][0];
+      }
+      return name.substring(0,2);
+    }
     return email.substring(0, 2).toUpperCase();
   };
 
@@ -60,13 +71,13 @@ const MobileNav = () => {
             <SheetClose asChild>
               <Link href="/wishlist" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:bg-secondary hover:text-secondary-foreground transition-colors">
                 <Heart className="mr-2 h-5 w-5" />
-                Wishlist ({wishlistItems.length})
+                Wishlist {wishlistItems.length > 0 && `(${wishlistItems.length})`}
               </Link>
             </SheetClose>
             <SheetClose asChild>
               <Link href="/checkout" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:bg-secondary hover:text-secondary-foreground transition-colors">
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Cart
+                Cart {cartItemCount > 0 && `(${cartItemCount})`}
               </Link>
             </SheetClose>
             <SheetClose asChild>

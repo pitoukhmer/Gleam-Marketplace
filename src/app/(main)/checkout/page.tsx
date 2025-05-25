@@ -1,8 +1,8 @@
 
-"use client"; // This page will involve forms and client-side logic
+"use client"; 
 
 import Link from 'next/link';
-import Image from 'next/image'; // Added import for Image
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,11 @@ import { Separator } from '@/components/ui/separator';
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, ShoppingCart } from 'lucide-react';
+import { CreditCard, ShoppingCart, Trash2, MinusSquare, PlusSquare } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useCart } from '@/hooks/useCart';
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
@@ -32,9 +33,11 @@ type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
   const { toast } = useToast();
+  const { cartItems, removeFromCart, updateItemQuantity, getCartSubtotal, clearCart } = useCart();
+
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { // Provide default values to avoid uncontrolled to controlled input warning
+    defaultValues: { 
       fullName: "",
       email: "",
       address: "",
@@ -48,24 +51,25 @@ export default function CheckoutPage() {
   });
 
   const onSubmit: SubmitHandler<CheckoutFormValues> = (data) => {
-    // console.log("Checkout data:", data); // Removed for production
-    // Placeholder for actual payment processing
     toast({
       title: "Order Submitted (Placeholder)",
       description: "Your order has been received. Payment processing is simulated.",
     });
-    form.reset(); // Reset form after submission
+    form.reset(); 
+    clearCart();
   };
 
-  // Placeholder cart summary items
-  const cartItems = [
-    { id: '1', name: 'Classic Gold Band', price: 499.99, quantity: 1, image: 'https://placehold.co/80x80.png', dataAiHint: 'product small image' },
-    { id: '2', name: 'Diamond Solitaire Necklace', price: 1299.00, quantity: 1, image: 'https://placehold.co/80x80.png', dataAiHint: 'product small image' },
-  ];
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 15.00; // Example shipping cost
+  const subtotal = getCartSubtotal();
+  const shipping = cartItems.length > 0 ? 15.00 : 0.00;
   const total = subtotal + shipping;
 
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) {
+      removeFromCart(productId);
+    } else {
+      updateItemQuantity(productId, newQuantity);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -172,7 +176,7 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
             
-            <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={cartItems.length === 0 || form.formState.isSubmitting}>
               <CreditCard className="mr-2 h-5 w-5" /> Place Order
             </Button>
           </form>
@@ -184,32 +188,65 @@ export default function CheckoutPage() {
                     <CardTitle className="text-2xl flex items-center gap-2"><ShoppingCart className="h-6 w-6 text-primary"/>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {cartItems.map(item => (
-                        <div key={item.id} className="flex justify-between items-center">
-                           <div className="flex items-center gap-2">
-                            <Image src={item.image} alt={item.name} width={40} height={40} className="rounded" data-ai-hint={item.dataAiHint} />
-                            <div>
-                                <p className="font-medium text-sm">{item.name}</p>
-                                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                    {cartItems.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-4">Your cart is empty.</p>
+                    ) : (
+                        cartItems.map(item => (
+                            <div key={item.id} className="flex justify-between items-start">
+                               <div className="flex items-start gap-3">
+                                <Image 
+                                    src={item.images[0].split('?')[0]} 
+                                    alt={item.name} 
+                                    width={60} 
+                                    height={60} 
+                                    className="rounded-md border object-cover aspect-square" 
+                                    data-ai-hint={item.dataAiHint || 'product small image'} />
+                                <div>
+                                    <p className="font-medium text-sm leading-tight">{item.name}</p>
+                                    <div className="flex items-center gap-1 mt-1">
+                                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleQuantityChange(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                                            <MinusSquare className="h-3 w-3"/>
+                                        </Button>
+                                        <Input 
+                                            type="number" 
+                                            value={item.quantity} 
+                                            onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value,10) || 1)}
+                                            className="h-6 w-10 text-center px-1 text-xs"
+                                            min="1"
+                                        />
+                                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleQuantityChange(item.id, item.quantity + 1)}>
+                                            <PlusSquare className="h-3 w-3"/>
+                                        </Button>
+                                    </div>
+                                </div>
+                               </div>
+                               <div className="flex flex-col items-end">
+                                <p className="text-sm font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                                <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} aria-label="Remove item" className="mt-1 h-7 w-7">
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                               </div>
                             </div>
-                           </div>
-                           <p className="text-sm font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                        </div>
-                    ))}
-                    <Separator />
-                    <div className="flex justify-between text-sm">
-                        <p>Subtotal</p>
-                        <p>${subtotal.toFixed(2)}</p>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <p>Shipping</p>
-                        <p>${shipping.toFixed(2)}</p>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between text-lg font-bold text-primary">
-                        <p>Total</p>
-                        <p>${total.toFixed(2)}</p>
-                    </div>
+                        ))
+                    )}
+                    {cartItems.length > 0 && (
+                        <>
+                            <Separator />
+                            <div className="flex justify-between text-sm">
+                                <p>Subtotal</p>
+                                <p>${subtotal.toFixed(2)}</p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <p>Shipping</p>
+                                <p>${shipping.toFixed(2)}</p>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between text-lg font-bold text-primary">
+                                <p>Total</p>
+                                <p>${total.toFixed(2)}</p>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>

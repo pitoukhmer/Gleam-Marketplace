@@ -26,6 +26,11 @@ export interface Product {
   reviewCount?: number;
   tags?: string[];
   details?: Record<string, string>; // For misc details like 'Certificate: GIA Certified'
+  dataAiHint?: string; // Added for consistency if needed for product image hints
+}
+
+export interface CartItem extends Product {
+  quantity: number;
 }
 
 export interface Review {
@@ -57,3 +62,4 @@ export interface SignupFormData {
   password: string;
   confirmPassword?: string; // Optional on server, but good for client-side validation
 }
+

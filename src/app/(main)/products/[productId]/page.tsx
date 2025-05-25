@@ -1,4 +1,6 @@
 
+"use client"; 
+
 import Link from 'next/link';
 import { PRODUCTS, REVIEWS } from '@/lib/constants';
 import ProductImageGallery from '@/components/products/ProductImageGallery';
@@ -10,6 +12,8 @@ import { Star, ShoppingCart, Package, Ruler, Info, Sparkles, CheckCircle } from 
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useCart } from '@/hooks/useCart';
+import { useState } from 'react'; // Though not used for quantity yet, good to have if needed.
 
 interface ProductPageProps {
   params: {
@@ -17,6 +21,8 @@ interface ProductPageProps {
   };
 }
 
+// generateStaticParams can remain as this component is still pre-rendered at build time
+// The "use client" directive makes it a client component, but Next.js can still pre-render it.
 export async function generateStaticParams() {
   return PRODUCTS.map((product) => ({
     productId: product.id,
@@ -26,10 +32,17 @@ export async function generateStaticParams() {
 export default function ProductPage({ params }: ProductPageProps) {
   const product = PRODUCTS.find((p) => p.id === params.productId);
   const reviews = REVIEWS.filter((r) => r.productId === params.productId);
+  const { addToCart: addProductToCart, isInCart } = useCart();
 
   if (!product) {
     return <div className="text-center py-10">Product not found.</div>;
   }
+
+  const handleAddToCart = () => {
+    if (product) {
+      addProductToCart(product, 1); // Add 1 quantity by default
+    }
+  };
 
   return (
     <div className="space-y-10">
@@ -82,8 +95,14 @@ export default function ProductPage({ params }: ProductPageProps) {
           <p className="text-foreground leading-relaxed">{product.description}</p>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button size="lg" className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90" disabled={product.stock === 0}>
-              <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
+            <Button 
+              size="lg" 
+              className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90" 
+              disabled={product.stock === 0}
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="mr-2 h-5 w-5" /> 
+              {isInCart(product.id) ? "Add More to Cart" : "Add to Cart"}
             </Button>
             <WishlistButton product={product} className="w-full sm:w-auto border border-input" />
           </div>
@@ -149,4 +168,3 @@ export default function ProductPage({ params }: ProductPageProps) {
     </div>
   );
 }
-
