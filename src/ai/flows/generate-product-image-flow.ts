@@ -50,23 +50,37 @@ const generateProductImageFlow = ai.defineFlow(
 
       if (!media?.url) {
         console.error('Image generation failed: No media URL returned from AI.');
-        return {error: 'Image generation failed to produce an image. Please try again.'};
+        return {error: 'AI image generation did not produce an image. Please try again.'};
       }
 
       return {imageDataUri: media.url};
     } catch (err: any) {
-      console.error('Error in generateProductImageFlow:', err);
-      // In production, detailed error messages might be stripped by Next.js,
-      // but logging them here helps with debugging in server logs.
-      let userFriendlyMessage = 'An unexpected error occurred during image generation. Please ensure API keys are configured correctly in the production environment.';
-      if (err.message && err.message.includes('API key not valid')) {
-        userFriendlyMessage = 'AI image generation failed: The API key is not valid. Please check server configuration.';
-      } else if (err.message) {
-        // Avoid leaking too much detail, but give some hint if possible.
-        // This message might still be overridden by Next.js in production.
-        // userFriendlyMessage = `Image generation error: ${err.message}`; // Potentially too verbose
+      // Log the full error on the server for debugging
+      console.error('Error in generateProductImageFlow:', err); 
+      
+      let clientErrorMessage = 'AI image generation failed. Please try again later.'; // Default client-facing message
+
+      if (err.message) {
+        const lowerCaseErrorMessage = err.message.toLowerCase();
+        if (lowerCaseErrorMessage.includes('api key not valid')) {
+          clientErrorMessage = 'AI image generation failed: The API key is not valid. Please check server configuration and ensure it is correctly set in the production environment.';
+        } else if (lowerCaseErrorMessage.includes('billing account not found') || lowerCaseErrorMessage.includes('billing is not enabled')) {
+            clientErrorMessage = 'AI image generation failed: A billing issue was encountered (e.g., billing account not found or not enabled for the project). Please check your Google Cloud project billing status.';
+        } else if (lowerCaseErrorMessage.includes('quota') || lowerCaseErrorMessage.includes('rate limit')) {
+            clientErrorMessage = 'AI image generation failed due to API quota or rate limits. Please check your usage limits in the Google Cloud console.';
+        }
+        // For other errors with a message, guide admins to logs.
+        // Avoid sending raw err.message to client in prod unless sanitized or known to be safe.
+        else {
+          clientErrorMessage = 'AI image generation encountered an unexpected issue. Administrators: Please check server logs for detailed error information (e.g., related to API access, permissions, or model configuration).';
+        }
+      } else {
+        // Generic error if no specific message is available from the caught error
+        clientErrorMessage = 'An unexpected and unknown error occurred during AI image generation. Administrators: Please check server logs for any available details.';
       }
-      return {error: userFriendlyMessage};
+      
+      return {error: clientErrorMessage};
     }
   }
 );
+
