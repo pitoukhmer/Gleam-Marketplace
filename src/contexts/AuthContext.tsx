@@ -8,8 +8,8 @@ import {
   signOut as firebaseSignOut, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  GoogleAuthProvider, // Added
-  signInWithPopup     // Added
+  GoogleAuthProvider,
+  signInWithPopup     
 } from 'firebase/auth';
 import React, { createContext, useState, useEffect, type ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -18,28 +18,37 @@ import type { LoginFormData, SignupFormData } from '@/types';
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
+  isAdmin: boolean; // Added isAdmin flag
   signup: (data: SignupFormData) => Promise<User | null>;
   login: (data: LoginFormData) => Promise<User | null>;
-  signInWithGoogle: () => Promise<User | null>; // Added
+  signInWithGoogle: () => Promise<User | null>; 
   logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const googleProvider = new GoogleAuthProvider(); // Added
+const googleProvider = new GoogleAuthProvider(); 
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false); // State for isAdmin
   const { toast } = useToast();
+
+  const adminUid = process.env.NEXT_PUBLIC_ADMIN_UID;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      if (user && adminUid) {
+        setIsAdmin(user.uid === adminUid);
+      } else {
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
     return unsubscribe; // Cleanup subscription on unmount
-  }, []);
+  }, [adminUid]);
 
   const signup = async (data: SignupFormData): Promise<User | null> => {
     try {
@@ -75,7 +84,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       const authError = error as AuthError;
       console.error("Google Sign-In error:", authError);
-      // Handle specific errors like popup closed by user, account exists with different credential, etc.
       if (authError.code === 'auth/popup-closed-by-user') {
         toast({ title: "Sign-In Cancelled", description: "The Google Sign-In popup was closed.", variant: "default" });
       } else if (authError.code === 'auth/account-exists-with-different-credential') {
@@ -102,9 +110,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     currentUser,
     loading,
+    isAdmin, // Expose isAdmin
     signup,
     login,
-    signInWithGoogle, // Added
+    signInWithGoogle, 
     logout,
   };
 

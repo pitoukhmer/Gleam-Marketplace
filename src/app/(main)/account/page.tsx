@@ -8,17 +8,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Mail, CalendarDays, LogOut } from 'lucide-react';
+import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Loader2, User, Mail, CalendarDays, LogOut, ShieldCheck } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { format } from 'date-fns'; // For formatting dates
+import { format } from 'date-fns'; 
 
 export default function AccountPage() {
-  const { currentUser, loading, logout } = useAuth();
+  const { currentUser, loading, logout, isAdmin } = useAuth(); // Added isAdmin
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !currentUser) {
-      router.push('/login?redirect=/account'); // Redirect to login if not authenticated
+      router.push('/login?redirect=/account'); 
     }
   }, [currentUser, loading, router]);
 
@@ -65,9 +66,16 @@ export default function AccountPage() {
             <AvatarImage src={currentUser.photoURL || undefined} alt={currentUser.displayName || currentUser.email || "User"} data-ai-hint="user avatar large"/>
             <AvatarFallback className="text-3xl">{getInitials(currentUser.email)}</AvatarFallback>
           </Avatar>
-          <CardTitle className="text-3xl text-primary">
-            {currentUser.displayName || 'Welcome'}
-          </CardTitle>
+          <div className="flex items-center justify-center gap-2">
+            <CardTitle className="text-3xl text-primary">
+              {currentUser.displayName || 'Welcome'}
+            </CardTitle>
+            {isAdmin && (
+              <Badge variant="default" className="bg-accent text-accent-foreground text-sm">
+                <ShieldCheck className="mr-1 h-4 w-4" /> Admin
+              </Badge>
+            )}
+          </div>
           <CardDescription>
             Manage your account details and view your activity.
           </CardDescription>
@@ -75,7 +83,7 @@ export default function AccountPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center space-x-3">
             <User className="h-5 w-5 text-muted-foreground" />
-            <p><strong>UID:</strong> <span className="text-muted-foreground text-sm">{currentUser.uid}</span></p>
+            <p><strong>UID:</strong> <span className="text-muted-foreground text-sm select-all">{currentUser.uid}</span></p>
           </div>
           <div className="flex items-center space-x-3">
             <Mail className="h-5 w-5 text-muted-foreground" />
