@@ -7,21 +7,26 @@ import {
   onAuthStateChanged, 
   signOut as firebaseSignOut, 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword 
+  signInWithEmailAndPassword,
+  GoogleAuthProvider, // Added
+  signInWithPopup     // Added
 } from 'firebase/auth';
 import React, { createContext, useState, useEffect, type ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import type { LoginFormData, SignupFormData } from '@/types'; // Will define these later
+import type { LoginFormData, SignupFormData } from '@/types';
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   signup: (data: SignupFormData) => Promise<User | null>;
   login: (data: LoginFormData) => Promise<User | null>;
+  signInWithGoogle: () => Promise<User | null>; // Added
   logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const googleProvider = new GoogleAuthProvider(); // Added
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -62,11 +67,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async (): Promise<User | null> => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      toast({ title: "Signed In with Google", description: "Welcome! You are now logged in." });
+      return userCredential.user;
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error("Google Sign-In error:", authError);
+      // Handle specific errors like popup closed by user, account exists with different credential, etc.
+      if (authError.code === 'auth/popup-closed-by-user') {
+        toast({ title: "Sign-In Cancelled", description: "The Google Sign-In popup was closed.", variant: "default" });
+      } else if (authError.code === 'auth/account-exists-with-different-credential') {
+         toast({ title: "Sign-In Failed", description: "An account already exists with this email address using a different sign-in method.", variant: "destructive" });
+      }
+      else {
+        toast({ title: "Google Sign-In Failed", description: authError.message || "An unknown error occurred.", variant: "destructive" });
+      }
+      return null;
+    }
+  };
+
   const logout = async () => {
     try {
       await firebaseSignOut(auth);
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      // router.push('/login'); // Optional: redirect after logout
     } catch (error) {
       const authError = error as AuthError;
       console.error("Logout error:", authError);
@@ -79,6 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signup,
     login,
+    signInWithGoogle, // Added
     logout,
   };
 
