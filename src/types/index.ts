@@ -1,4 +1,5 @@
 
+
 export interface Gemstone {
   type: string; // Diamond, Ruby, Emerald
   carat?: string;
@@ -42,4 +43,17 @@ export interface Category {
   name: string;
   image?: string;
   description?: string;
+  dataAiHint?: string;
+}
+
+// Auth Form Data Types
+export interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+export interface SignupFormData {
+  email: string;
+  password: string;
+  confirmPassword?: string; // Optional on server, but good for client-side validation
 }

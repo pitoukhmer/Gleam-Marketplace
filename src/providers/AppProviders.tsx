@@ -2,11 +2,14 @@
 "use client";
 import type { ReactNode } from 'react';
 import { WishlistProvider } from '@/contexts/WishlistContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <WishlistProvider>
-      {children}
-    </WishlistProvider>
+    <AuthProvider>
+      <WishlistProvider>
+        {children}
+      </WishlistProvider>
+    </AuthProvider>
   );
 }
