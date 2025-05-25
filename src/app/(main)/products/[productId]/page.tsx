@@ -13,18 +13,19 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useCart } from '@/hooks/useCart';
-import { useState } from 'react'; // Though not used for quantity yet, good to have if needed.
+import { useState, use } from 'react'; // Import use
 
 interface ProductPageProps {
-  params: {
+  params: { // The type from Next.js might still be the direct object
     productId: string;
   };
 }
 
-// generateStaticParams has been removed as this page is a Client Component.
-// Next.js will handle dynamic routes for products; they will be server-rendered on demand or client-rendered.
+export default function ProductPage({ params: paramsAsProp }: ProductPageProps) {
+  // Unwrap the params as per Next.js recommendation.
+  // The error message indicates `paramsAsProp` is effectively a Promise here.
+  const params = use(paramsAsProp as any);
 
-export default function ProductPage({ params }: ProductPageProps) {
   const product = PRODUCTS.find((p) => p.id === params.productId);
   const reviews = REVIEWS.filter((r) => r.productId === params.productId);
   const { addToCart: addProductToCart, isInCart } = useCart();
