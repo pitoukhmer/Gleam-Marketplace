@@ -56,7 +56,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       </Breadcrumb>
 
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
-        <ProductImageGallery images={product.images} productName={product.name} />
+        <ProductImageGallery images={product.images} productName={product.name} productCategorySlug={product.categorySlug} />
         
         <div className="space-y-6">
           <h1 className="text-3xl md:text-4xl font-bold text-primary">{product.name}</h1>
@@ -149,3 +149,4 @@ export default function ProductPage({ params }: ProductPageProps) {
     </div>
   );
 }
+
