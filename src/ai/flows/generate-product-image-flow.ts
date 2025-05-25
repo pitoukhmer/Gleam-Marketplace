@@ -65,7 +65,9 @@ const generateProductImageFlow = ai.defineFlow(
 
       if (err.message) {
         const lowerCaseErrorMessage = err.message.toLowerCase();
-        if (lowerCaseErrorMessage.includes('api key not valid') || lowerCaseErrorMessage.includes('api_key_invalid')) {
+        if (lowerCaseErrorMessage.includes('image generation is not available in your country')) {
+            clientErrorMessage = 'AI image generation failed: The selected AI model (gemini-2.0-flash-exp) for image generation is not available in your current country/region. Please check Google Cloud documentation for model availability.';
+        } else if (lowerCaseErrorMessage.includes('api key not valid') || lowerCaseErrorMessage.includes('api_key_invalid')) {
           clientErrorMessage = 'AI image generation failed: The API key is not valid. Please check server configuration and ensure it is correctly set in the production environment.';
         } else if (lowerCaseErrorMessage.includes('billing account not found') || lowerCaseErrorMessage.includes('billing is not enabled') || lowerCaseErrorMessage.includes('project_not_linked_to_billing_account')) {
             clientErrorMessage = 'AI image generation failed: A billing issue was encountered (e.g., billing account not found or not enabled for the project). Please check your Google Cloud project billing status.';
@@ -77,8 +79,7 @@ const generateProductImageFlow = ai.defineFlow(
             clientErrorMessage = 'AI image generation failed due to a permissions issue. Please ensure the service account or API key used by Cloud Run has the necessary IAM roles (e.g., Vertex AI User, AI Platform User, or Generative Language API User).';
         } else if (lowerCaseErrorMessage.includes('model_not_found') || lowerCaseErrorMessage.includes('model not found')) {
              clientErrorMessage = 'AI image generation failed: The specified AI model was not found. Please check the model name and availability.';
-        }
-        else {
+        } else {
           // For other errors with a message, guide admins to logs.
           clientErrorMessage = 'AI image generation encountered an unexpected issue. Administrators: Please check server logs for detailed error information (e.g., related to API access, permissions, or model configuration). The error message was: ' + err.message;
         }
