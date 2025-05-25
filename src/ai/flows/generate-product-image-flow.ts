@@ -56,27 +56,35 @@ const generateProductImageFlow = ai.defineFlow(
       return {imageDataUri: media.url};
     } catch (err: any) {
       // Log the full error on the server for debugging
-      console.error('Error in generateProductImageFlow:', err); 
+      console.error('Error in generateProductImageFlow. Raw error object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      if (err.stack) {
+        console.error('Error stack:', err.stack);
+      }
       
       let clientErrorMessage = 'AI image generation failed. Please try again later.'; // Default client-facing message
 
       if (err.message) {
         const lowerCaseErrorMessage = err.message.toLowerCase();
-        if (lowerCaseErrorMessage.includes('api key not valid')) {
+        if (lowerCaseErrorMessage.includes('api key not valid') || lowerCaseErrorMessage.includes('api_key_invalid')) {
           clientErrorMessage = 'AI image generation failed: The API key is not valid. Please check server configuration and ensure it is correctly set in the production environment.';
-        } else if (lowerCaseErrorMessage.includes('billing account not found') || lowerCaseErrorMessage.includes('billing is not enabled')) {
+        } else if (lowerCaseErrorMessage.includes('billing account not found') || lowerCaseErrorMessage.includes('billing is not enabled') || lowerCaseErrorMessage.includes('project_not_linked_to_billing_account')) {
             clientErrorMessage = 'AI image generation failed: A billing issue was encountered (e.g., billing account not found or not enabled for the project). Please check your Google Cloud project billing status.';
-        } else if (lowerCaseErrorMessage.includes('quota') || lowerCaseErrorMessage.includes('rate limit')) {
+        } else if (lowerCaseErrorMessage.includes('quota') || lowerCaseErrorMessage.includes('rate limit') || lowerCaseErrorMessage.includes('resource_exhausted')) {
             clientErrorMessage = 'AI image generation failed due to API quota or rate limits. Please check your usage limits in the Google Cloud console.';
+        } else if (lowerCaseErrorMessage.includes('api_not_enabled') || lowerCaseErrorMessage.includes('service not enabled') || (err.toString && err.toString().toLowerCase().includes('api not enabled')) ) {
+             clientErrorMessage = 'AI image generation failed: The required Google AI API (e.g., Generative Language API or Vertex AI API) is not enabled for your project. Please enable it in the Google Cloud Console.';
+        } else if (lowerCaseErrorMessage.includes('permission_denied') || lowerCaseErrorMessage.includes('iam') || (err.toString && err.toString().toLowerCase().includes('permission denied'))) {
+            clientErrorMessage = 'AI image generation failed due to a permissions issue. Please ensure the service account or API key used by Cloud Run has the necessary IAM roles (e.g., Vertex AI User, AI Platform User, or Generative Language API User).';
+        } else if (lowerCaseErrorMessage.includes('model_not_found') || lowerCaseErrorMessage.includes('model not found')) {
+             clientErrorMessage = 'AI image generation failed: The specified AI model was not found. Please check the model name and availability.';
         }
-        // For other errors with a message, guide admins to logs.
-        // Avoid sending raw err.message to client in prod unless sanitized or known to be safe.
         else {
-          clientErrorMessage = 'AI image generation encountered an unexpected issue. Administrators: Please check server logs for detailed error information (e.g., related to API access, permissions, or model configuration).';
+          // For other errors with a message, guide admins to logs.
+          clientErrorMessage = 'AI image generation encountered an unexpected issue. Administrators: Please check server logs for detailed error information (e.g., related to API access, permissions, or model configuration). The error message was: ' + err.message;
         }
       } else {
         // Generic error if no specific message is available from the caught error
-        clientErrorMessage = 'An unexpected and unknown error occurred during AI image generation. Administrators: Please check server logs for any available details.';
+        clientErrorMessage = 'An unexpected and unknown error occurred during AI image generation. Administrators: Please check server logs for any available details. The raw error was: ' + JSON.stringify(err, Object.getOwnPropertyNames(err)).substring(0, 200) + '...';
       }
       
       return {error: clientErrorMessage};
