@@ -2,6 +2,7 @@
 "use client"; // This page will involve forms and client-side logic
 
 import Link from 'next/link';
+import Image from 'next/image'; // Added import for Image
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,7 +48,7 @@ export default function CheckoutPage() {
   });
 
   const onSubmit: SubmitHandler<CheckoutFormValues> = (data) => {
-    console.log("Checkout data:", data);
+    // console.log("Checkout data:", data); // Removed for production
     // Placeholder for actual payment processing
     toast({
       title: "Order Submitted (Placeholder)",
@@ -58,8 +59,8 @@ export default function CheckoutPage() {
 
   // Placeholder cart summary items
   const cartItems = [
-    { id: '1', name: 'Classic Gold Band', price: 499.99, quantity: 1, image: 'https://placehold.co/80x80.png' },
-    { id: '2', name: 'Diamond Solitaire Necklace', price: 1299.00, quantity: 1, image: 'https://placehold.co/80x80.png' },
+    { id: '1', name: 'Classic Gold Band', price: 499.99, quantity: 1, image: 'https://placehold.co/80x80.png', dataAiHint: 'product small image' },
+    { id: '2', name: 'Diamond Solitaire Necklace', price: 1299.00, quantity: 1, image: 'https://placehold.co/80x80.png', dataAiHint: 'product small image' },
   ];
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = 15.00; // Example shipping cost
@@ -186,7 +187,7 @@ export default function CheckoutPage() {
                     {cartItems.map(item => (
                         <div key={item.id} className="flex justify-between items-center">
                            <div className="flex items-center gap-2">
-                            <Image src={item.image} alt={item.name} width={40} height={40} className="rounded" data-ai-hint="product small image" />
+                            <Image src={item.image} alt={item.name} width={40} height={40} className="rounded" data-ai-hint={item.dataAiHint} />
                             <div>
                                 <p className="font-medium text-sm">{item.name}</p>
                                 <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
