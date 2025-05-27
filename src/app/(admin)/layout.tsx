@@ -6,8 +6,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2, LayoutDashboard, Package, Users, Settings, LogOut, ChevronLeft, ShieldAlert } from 'lucide-react';
-import Logo from '@/components/layout/Logo'; // Will now use the refactored Logo
+import { Loader2, LayoutDashboard, Package, Users, Settings, LogOut, ChevronLeft, ShieldAlert, LineChart as LineChartIcon } from 'lucide-react'; // Added LineChartIcon and Users
+import Logo from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -45,7 +45,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/products', label: 'Products', icon: Package },
-    // Add more admin links here e.g. Users, Orders
+    { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/analytics', label: 'Analytics', icon: LineChartIcon },
   ];
 
   return (
@@ -53,8 +54,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen w-full bg-muted/40">
         <aside className="sticky top-0 z-30 flex h-screen w-16 flex-col border-r bg-background transition-all duration-300 ease-in-out sm:w-64 group data-[collapsed=true]:sm:w-16">
           <div className="flex h-16 items-center justify-between border-b px-4 sm:px-6 shrink-0">
-            {/* The Link now wraps the Logo component which returns its visual content */}
-            {/* Styling for this link makes it look like the logo, but links to /admin */}
             <Link 
               href="/admin" 
               className="flex items-center gap-2 text-xl md:text-2xl font-bold text-primary group-data-[collapsed=true]:sm:hidden hover:text-primary/90 transition-colors"
@@ -62,7 +61,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               <Logo />
             </Link>
-            {/* Could add a collapse button here if desired */}
           </div>
           <nav className="flex-1 space-y-1 p-2 sm:p-4 overflow-y-auto">
             {navItems.map((item) => (
@@ -105,7 +103,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </aside>
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
-            {/* Could add mobile nav trigger for admin sidebar, or breadcrumbs */}
             <h1 className="text-xl font-semibold text-primary">Admin Panel</h1>
           </header>
           <main className="flex-1 p-4 sm:p-6">
