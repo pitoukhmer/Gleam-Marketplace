@@ -34,6 +34,7 @@ export default function EditProductPage() {
   const handleSubmit = async (data: ProductFormValues) => {
     if (!productId) return;
     // ProductFormValues matches Partial<Omit<Product, 'id'>> for updateProduct
+    // The ProductFormValues from productSchema already transforms images/tags to string[]
     updateProduct(productId, data);
     router.push("/admin/products");
   };
@@ -46,11 +47,15 @@ export default function EditProductPage() {
     return <div className="text-center py-10 text-destructive">Product not found.</div>;
   }
   
-  const defaultValuesForForm = {
-    ...product,
-    images: product.images.join(', '), // Convert array to comma-separated string for form
-    tags: product.tags?.join(', '), // Convert array to comma-separated string
-  };
+  // Pass the 'product' object directly. 
+  // ProductForm's defaultValues prop expects Partial<Product>, 
+  // and it will handle converting product.images (string[]) and product.tags (string[] | undefined)
+  // into comma-separated strings for its internal form fields.
+  // const defaultValuesForForm = { // OLD, INCORRECT WAY
+  //   ...product,
+  //   images: product.images.join(', '), 
+  //   tags: product.tags?.join(', '), 
+  // };
 
 
   return (
@@ -74,7 +79,7 @@ export default function EditProductPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <ProductForm onSubmit={handleSubmit} defaultValues={defaultValuesForForm} isEditing={true} />
+      <ProductForm onSubmit={handleSubmit} defaultValues={product} isEditing={true} />
     </div>
   );
 }
