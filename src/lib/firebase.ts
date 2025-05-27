@@ -3,39 +3,44 @@ import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 // import { getFirestore, type Firestore } from "firebase/firestore"; // Example if you need Firestore
 
+// Hardcoded Firebase configuration based on user input
+// IMPORTANT: For actual production deployments outside of a controlled studio environment,
+// using environment variables (process.env.NEXT_PUBLIC_FIREBASE_...) is strongly recommended
+// for security and flexibility.
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  apiKey: "AIzaSyDD_cdoCz5zA1K87ZX6YYadF0GfH_VDaFw",
+  authDomain: "gleam-marketplace.firebaseapp.com",
+  projectId: "gleam-marketplace",
+  storageBucket: "gleam-marketplace.firebasestorage.app",
+  messagingSenderId: "839613241224",
+  appId: "1:839613241224:web:57892f3da714ee7e094c3d",
+  // measurementId is optional, add it here if you have one and need it.
+  // measurementId: "G-XXXXXXXXXX",
 };
 
-// Client-side diagnostic checks
+// Client-side diagnostic checks for the hardcoded values (for awareness)
 if (typeof window !== 'undefined') { // Run only on the client-side
-  if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("YOUR_") || firebaseConfig.apiKey.length < 10) {
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_FIREBASE_WEB_API_KEY_VALUE" || firebaseConfig.apiKey.length < 10) {
     console.warn(
-      "%cFirebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) appears to be missing, a placeholder, or invalid.",
+      "%cFirebase API Key (hardcoded) appears to be missing, a placeholder, or invalid.",
       "color: red; font-weight: bold;",
-      "Please ensure it is correctly set in your Firebase Studio project's environment variable settings.",
+      "Please ensure it is correctly set in src/lib/firebase.ts or via environment variables for production.",
       "Current value:", firebaseConfig.apiKey
     );
   }
-  if (!firebaseConfig.authDomain || firebaseConfig.authDomain.includes("YOUR_")) {
+  if (!firebaseConfig.authDomain || firebaseConfig.authDomain === "YOUR_FIREBASE_AUTH_DOMAIN_VALUE") {
     console.warn(
-      "%cFirebase Auth Domain (NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) appears to be missing or a placeholder.",
+      "%cFirebase Auth Domain (hardcoded) appears to be missing or a placeholder.",
       "color: orange; font-weight: bold;",
-      "Please ensure it is correctly set in your Firebase Studio project's environment variable settings.",
+      "Please ensure it is correctly set in src/lib/firebase.ts or via environment variables for production.",
       "Current value:", firebaseConfig.authDomain
     );
   }
-  if (!firebaseConfig.projectId || firebaseConfig.projectId.includes("YOUR_")) {
+  if (!firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID_VALUE") {
     console.warn(
-      "%cFirebase Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) appears to be missing or a placeholder.",
+      "%cFirebase Project ID (hardcoded) appears to be missing or a placeholder.",
       "color: orange; font-weight: bold;",
-      "Please ensure it is correctly set in your Firebase Studio project's environment variable settings.",
+      "Please ensure it is correctly set in src/lib/firebase.ts or via environment variables for production.",
       "Current value:", firebaseConfig.projectId
     );
   }
