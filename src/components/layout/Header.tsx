@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Search, Heart, ShoppingCart, User, LogOut, LogIn } from 'lucide-react';
+import { Search, Heart, ShoppingCart, User, LogOut, LogIn, Shield } from 'lucide-react'; // Added Shield
 import { Button } from '@/components/ui/button';
 import { CATEGORIES } from '@/lib/constants';
 import Logo from './Logo';
@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
 
 const Header = () => {
   const { wishlistItems } = useWishlist();
-  const { currentUser, logout, loading } = useAuth();
+  const { currentUser, logout, loading, isAdmin } = useAuth(); // Added isAdmin
   const { getCartItemCount } = useCart();
   const cartItemCount = getCartItemCount();
 
@@ -117,6 +117,14 @@ const Header = () => {
                     Account
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="cursor-pointer">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, Search, Heart, ShoppingCart, X, User, LogOut, LogIn } from 'lucide-react';
+import { Menu, Search, Heart, ShoppingCart, X, User, LogOut, LogIn, Shield } from 'lucide-react'; // Added Shield
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetClose, SheetTrigger } from '@/components/ui/sheet';
 import { CATEGORIES } from '@/lib/constants';
@@ -15,7 +15,7 @@ import { Separator } from '../ui/separator';
 
 const MobileNav = () => {
   const { wishlistItems } = useWishlist();
-  const { currentUser, logout, loading } = useAuth();
+  const { currentUser, logout, loading, isAdmin } = useAuth(); // Added isAdmin
   const { getCartItemCount } = useCart();
   const cartItemCount = getCartItemCount();
 
@@ -68,6 +68,14 @@ const MobileNav = () => {
               </SheetClose>
             ))}
             <Separator className="my-2 border-border" />
+             {isAdmin && (
+              <SheetClose asChild>
+                <Link href="/admin" className="flex items-center px-3 py-2 rounded-md text-base font-medium text-primary hover:bg-primary/10 transition-colors">
+                  <Shield className="mr-2 h-5 w-5" />
+                  Admin Panel
+                </Link>
+              </SheetClose>
+            )}
             <SheetClose asChild>
               <Link href="/wishlist" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:bg-secondary hover:text-secondary-foreground transition-colors">
                 <Heart className="mr-2 h-5 w-5" />
