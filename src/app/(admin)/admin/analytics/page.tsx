@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { AlertTriangle, LineChart as LineChartIcon, BarChart2, DollarSign, Users, ShoppingBag } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminAnalyticsPage() {
   return (
@@ -28,21 +29,19 @@ export default function AdminAnalyticsPage() {
             Site Analytics
           </CardTitle>
           <CardDescription>
-            Overview of site performance and key metrics. (Placeholder Page)
+            Overview of site performance and key metrics.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
-          <div className="flex items-center p-4 text-sm rounded-md bg-secondary/30 border border-secondary text-foreground">
-            <AlertTriangle className="h-5 w-5 mr-3 text-primary shrink-0" />
-            <div>
-              <p className="font-semibold">Analytics Feature - Placeholder</p>
-              <p className="text-muted-foreground">
-                This page demonstrates where site analytics would be displayed.
-                Actual analytics require a robust backend system for data collection, aggregation, and processing.
-                The sections below are placeholders for charts and data summaries.
-              </p>
-            </div>
-          </div>
+          <Alert variant="default" className="bg-secondary/30 border-secondary">
+            <AlertTriangle className="h-5 w-5 text-primary" />
+            <AlertTitle className="font-semibold">Analytics Feature - Placeholder</AlertTitle>
+            <AlertDescription className="text-muted-foreground">
+              This page demonstrates where site analytics would be displayed.
+              Actual analytics require a robust backend system for data collection, aggregation, and processing.
+              The sections below are placeholders for charts and data summaries.
+            </AlertDescription>
+          </Alert>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
