@@ -18,7 +18,7 @@ import type { LoginFormData, SignupFormData } from '@/types';
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
-  isAdmin: boolean; // Added isAdmin flag
+  isAdmin: boolean;
   signup: (data: SignupFormData) => Promise<User | null>;
   login: (data: LoginFormData) => Promise<User | null>;
   signInWithGoogle: () => Promise<User | null>; 
@@ -28,27 +28,36 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const googleProvider = new GoogleAuthProvider(); 
+const ADMIN_EMAIL_FALLBACK = "pitouthou@gmail.com";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false); // State for isAdmin
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
-  const adminUid = process.env.NEXT_PUBLIC_ADMIN_UID;
+  const adminUidFromEnv = process.env.NEXT_PUBLIC_ADMIN_UID;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
-      if (user && adminUid) {
-        setIsAdmin(user.uid === adminUid);
+      if (user) {
+        const isUidAdmin = adminUidFromEnv && user.uid === adminUidFromEnv;
+        const isEmailAdmin = user.email === ADMIN_EMAIL_FALLBACK;
+        setIsAdmin(isUidAdmin || isEmailAdmin);
+
+        if (isEmailAdmin && !isUidAdmin) {
+          console.warn(
+            `Admin access granted to ${ADMIN_EMAIL_FALLBACK} via email fallback. For better security and production, please set NEXT_PUBLIC_ADMIN_UID to this user's UID: ${user.uid}`
+          );
+        }
       } else {
         setIsAdmin(false);
       }
       setLoading(false);
     });
     return unsubscribe; // Cleanup subscription on unmount
-  }, [adminUid]);
+  }, [adminUidFromEnv]);
 
   const signup = async (data: SignupFormData): Promise<User | null> => {
     try {
@@ -110,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     currentUser,
     loading,
-    isAdmin, // Expose isAdmin
+    isAdmin,
     signup,
     login,
     signInWithGoogle, 

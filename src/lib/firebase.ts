@@ -19,12 +19,13 @@ const firebaseConfig = {
 };
 
 // Client-side diagnostic checks for the hardcoded values (for awareness)
-if (typeof window !== 'undefined') { // Run only on the client-side
+// These checks are primarily for when environment variables *were* being used.
+// Since we are now hardcoding, they are less critical but left for future reference if you revert.
+if (typeof window !== 'undefined') { 
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_FIREBASE_WEB_API_KEY_VALUE" || firebaseConfig.apiKey.length < 10) {
     console.warn(
       "%cFirebase API Key (hardcoded) appears to be missing, a placeholder, or invalid.",
       "color: red; font-weight: bold;",
-      "Please ensure it is correctly set in src/lib/firebase.ts or via environment variables for production.",
       "Current value:", firebaseConfig.apiKey
     );
   }
@@ -32,7 +33,6 @@ if (typeof window !== 'undefined') { // Run only on the client-side
     console.warn(
       "%cFirebase Auth Domain (hardcoded) appears to be missing or a placeholder.",
       "color: orange; font-weight: bold;",
-      "Please ensure it is correctly set in src/lib/firebase.ts or via environment variables for production.",
       "Current value:", firebaseConfig.authDomain
     );
   }
@@ -40,7 +40,6 @@ if (typeof window !== 'undefined') { // Run only on the client-side
     console.warn(
       "%cFirebase Project ID (hardcoded) appears to be missing or a placeholder.",
       "color: orange; font-weight: bold;",
-      "Please ensure it is correctly set in src/lib/firebase.ts or via environment variables for production.",
       "Current value:", firebaseConfig.projectId
     );
   }
