@@ -27,7 +27,7 @@ export const productSchema = z.object({
   karat: z.string().optional().default(''),
   weight: z.string().optional().default(''),
   dimensions: z.string().optional().default(''),
-  sku: z.string().min(1, "SKU is required."),
+  sku: z.string().min(1, "SKU is required."), // Made SKU explicitly required
   tags: z.string().optional().transform(val => val ? val.split(',').map(s => s.trim()).filter(s => s.length > 0) : undefined),
   // Gemstones and details could be more complex; for now, they are not directly editable in this basic form.
   // avgRating: z.number().optional(), // Not typically set in form
