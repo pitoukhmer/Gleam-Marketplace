@@ -2,10 +2,10 @@
 "use client";
 
 import Link from 'next/link';
-import { Search, Heart, ShoppingCart, User, LogOut, LogIn, Shield } from 'lucide-react'; // Added Shield
+import { Search, Heart, ShoppingCart, User, LogOut, LogIn, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CATEGORIES } from '@/lib/constants';
-import Logo from './Logo';
+import Logo from './Logo'; // Updated to use the new Logo component
 import MobileNav from './MobileNav';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
 
 const Header = () => {
   const { wishlistItems } = useWishlist();
-  const { currentUser, logout, loading, isAdmin } = useAuth(); // Added isAdmin
+  const { currentUser, logout, loading, isAdmin } = useAuth();
   const { getCartItemCount } = useCart();
   const cartItemCount = getCartItemCount();
 
@@ -50,7 +50,13 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Logo />
+        <Link 
+          href="/" 
+          className="flex items-center gap-2 text-xl md:text-2xl font-bold text-primary hover:text-primary/90 transition-colors" 
+          aria-label="Gleam Marketplace Home"
+        >
+          <Logo />
+        </Link>
         
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>

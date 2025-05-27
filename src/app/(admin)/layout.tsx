@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, LayoutDashboard, Package, Users, Settings, LogOut, ChevronLeft, ShieldAlert } from 'lucide-react';
-import Logo from '@/components/layout/Logo';
+import Logo from '@/components/layout/Logo'; // Will now use the refactored Logo
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -53,7 +53,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen w-full bg-muted/40">
         <aside className="sticky top-0 z-30 flex h-screen w-16 flex-col border-r bg-background transition-all duration-300 ease-in-out sm:w-64 group data-[collapsed=true]:sm:w-16">
           <div className="flex h-16 items-center justify-between border-b px-4 sm:px-6 shrink-0">
-            <Link href="/admin" className="flex items-center gap-2 font-semibold group-data-[collapsed=true]:sm:hidden">
+            {/* The Link now wraps the Logo component which returns its visual content */}
+            {/* Styling for this link makes it look like the logo, but links to /admin */}
+            <Link 
+              href="/admin" 
+              className="flex items-center gap-2 text-xl md:text-2xl font-bold text-primary group-data-[collapsed=true]:sm:hidden hover:text-primary/90 transition-colors"
+              aria-label="Admin Dashboard"
+            >
               <Logo />
             </Link>
             {/* Could add a collapse button here if desired */}
