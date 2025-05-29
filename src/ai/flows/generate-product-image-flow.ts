@@ -54,44 +54,47 @@ const generateProductImageFlow = ai.defineFlow(
       }
 
       return {imageDataUri: media.url};
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed to unknown for safer type handling
       // Log the full error on the server for debugging
-      console.error('Error in generateProductImageFlow. Raw error object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-      if (err.stack) {
+      console.error('Error in generateProductImageFlow. Raw error object:', JSON.stringify(err, Object.getOwnPropertyNames(err instanceof Error ? err : {})));
+      if (err instanceof Error && err.stack) {
         console.error('Error stack:', err.stack);
       }
       
       let clientErrorMessage = 'AI image generation failed. Please try again later.'; // Default client-facing message
       let rawErrorMessage = '';
 
-      if (err && err.message) {
-        rawErrorMessage = String(err.message);
-      } else if (err && typeof err.toString === 'function') {
-        rawErrorMessage = err.toString();
+      if (err instanceof Error && err.message) {
+        rawErrorMessage = err.message;
+      } else if (typeof err === 'string') {
+        rawErrorMessage = err;
+      } else {
+        rawErrorMessage = 'An unknown error structure was caught.';
       }
 
       const lowerCaseErrorMessage = rawErrorMessage.toLowerCase();
 
       if (lowerCaseErrorMessage.includes('image generation is not available in your country')) {
-          clientErrorMessage = 'AI image generation failed: The selected AI model (gemini-2.0-flash-exp) for image generation is not available in your current country/region. Please check Google Cloud documentation for model availability and consider adjusting your Vercel function deployment region if possible.';
+          clientErrorMessage = 'AI image generation failed: The selected AI model (gemini-2.0-flash-exp) for image generation is not available in your current country/region. Please check Google Cloud documentation for model availability. If deploying to Vercel, consider adjusting your Vercel Function deployment region if possible.';
       } else if (lowerCaseErrorMessage.includes('api key not valid') || lowerCaseErrorMessage.includes('api_key_invalid')) {
-        clientErrorMessage = 'AI image generation failed: The API key is not valid. Please check server configuration and ensure it is correctly set in the production environment.';
+        clientErrorMessage = 'AI image generation failed: The API key is not valid. Please check server configuration (e.g., GOOGLE_API_KEY environment variable in Vercel/production) and ensure it is correctly set and has permissions for the Generative Language API or Vertex AI API.';
       } else if (lowerCaseErrorMessage.includes('billing account not found') || lowerCaseErrorMessage.includes('billing is not enabled') || lowerCaseErrorMessage.includes('project_not_linked_to_billing_account')) {
           clientErrorMessage = 'AI image generation failed: A billing issue was encountered (e.g., billing account not found or not enabled for the project). Please check your Google Cloud project billing status.';
       } else if (lowerCaseErrorMessage.includes('quota') || lowerCaseErrorMessage.includes('rate limit') || lowerCaseErrorMessage.includes('resource_exhausted')) {
           clientErrorMessage = 'AI image generation failed due to API quota or rate limits. Please check your usage limits in the Google Cloud console.';
-      } else if (lowerCaseErrorMessage.includes('api_not_enabled') || lowerCaseErrorMessage.includes('service not enabled') ) {
+      } else if (lowerCaseErrorMessage.includes('api_not_enabled') || lowerCaseErrorMessage.includes('service not enabled') || lowerCaseErrorMessage.includes('generative language api is not used') || lowerCaseErrorMessage.includes('vertex ai api is not used')) {
            clientErrorMessage = 'AI image generation failed: The required Google AI API (e.g., Generative Language API or Vertex AI API) is not enabled for your project. Please enable it in the Google Cloud Console.';
       } else if (lowerCaseErrorMessage.includes('permission_denied') || lowerCaseErrorMessage.includes('iam')) {
-          clientErrorMessage = 'AI image generation failed due to a permissions issue. Please ensure the service account or API key used by Cloud Run/Vercel has the necessary IAM roles (e.g., Vertex AI User, AI Platform User, or Generative Language API User).';
+          clientErrorMessage = 'AI image generation failed due to a permissions issue. Please ensure the service account or API key used by your Vercel Functions/Cloud Run has the necessary IAM roles (e.g., Vertex AI User, AI Platform User, or Generative Language API User).';
       } else if (lowerCaseErrorMessage.includes('model_not_found') || lowerCaseErrorMessage.includes('model not found')) {
            clientErrorMessage = 'AI image generation failed: The specified AI model (gemini-2.0-flash-exp) was not found. Please check the model name and its regional availability.';
-      } else if (rawErrorMessage) {
+      } else if (rawErrorMessage && rawErrorMessage !== 'An unknown error structure was caught.') {
         // For other errors with a message, guide admins to logs.
         clientErrorMessage = 'AI image generation encountered an unexpected issue. Administrators: Please check server logs for detailed error information (e.g., related to API access, permissions, or model configuration). The error message was: ' + rawErrorMessage;
       } else {
         // Generic error if no specific message is available from the caught error
-        clientErrorMessage = 'An unexpected and unknown error occurred during AI image generation. Administrators: Please check server logs for any available details. The raw error object was: ' + JSON.stringify(err, Object.getOwnPropertyNames(err)).substring(0, 200) + '...';
+        const errorString = JSON.stringify(err, Object.getOwnPropertyNames(err instanceof Error ? err : {}));
+        clientErrorMessage = 'An unexpected and unknown error occurred during AI image generation. Administrators: Please check server logs for any available details. The raw error object was: ' + (errorString.length > 200 ? errorString.substring(0, 200) + '...' : errorString) ;
       }
       
       return {error: clientErrorMessage};
